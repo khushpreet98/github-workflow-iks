@@ -1,0 +1,79 @@
+name: Go
+
+on:
+  push:
+    branches:
+     - master
+     - develop
+
+jobs:
+  build:
+    name: Build
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Set up Go 1.x
+      uses: actions/setup-go@v2
+      with:
+        go-version: ^1.14
+      
+    - name: Check out code
+      uses: actions/checkout@v2
+      
+    - name: Set outputs
+      id: image-tag
+      run: echo "::set-output name=sha_short::$(git rev-parse --short HEAD)"
+
+    - name: Test
+      run: |
+        CGO_ENABLED=0 go test ./...
+        
+    - name: Get the branch name
+      run: echo "BRANCH_NAME=$(echo ${GITHUB_REF#refs/heads/} | tr / -)" >> $GITHUB_ENV
+      
+    - name: Login to Docker Hub
+      uses: docker/login-action@v1
+      with:
+       username: ${{ secrets.DOCKER_USERNAME }}
+       password: ${{ secrets.DOCKER_PASSWORD }}
+      
+    - name: Build image
+      run: docker build -t sania77/github-action:${{ env.BRANCH_NAME }}_${{ steps.image-tag.outputs.sha_short }} .
+      
+    - name: push image
+      run: docker push sania77/github-action:${{ env.BRANCH_NAME }}_${{ steps.image-tag.outputs.sha_short }}
+
+        
+#     - name: Build and push Docker image
+#       uses: docker/build-push-action@v1.1.0
+#       with:
+#         username: ${{ secrets.DOCKER_USERNAME }}
+#         password: ${{ secrets.DOCKER_PASSWORD }}
+#         repository: ${{ secrets.DOCKER_USERNAME }}/github-action
+#         tags: ${{ steps.image-tag.outputs.sha_short  }}
+        
+#     - name: Update image tag with commit-id
+#       run: |
+#        cd kustomize/base
+#        yq -i  eval '.spec.template.spec.containers[].image = "sania77/github-action:${{ steps.image-tag.outputs.sha_short }}"' deployment.yaml 
+#        cat deployment.yaml
+       
+    - name: Update helm manifest of gitops instance values.yaml
+      if: github.ref == 'refs/heads/master'
+      run: |
+       cd myapp
+       yq -i  eval '.images.imagetag="sania77/github-action:${{ env.BRANCH_NAME }}_${{ steps.image-tag.outputs.sha_short }}"' values.yaml
+       cat values.yaml
+       
+    - name: Update helm manifest of gitops instance values.yaml
+      if: github.ref == 'refs/heads/develop'
+      run: |
+       cd myapp
+       yq -i  eval '.images.imagetag="sania77/github-action:${{ env.BRANCH_NAME }}_${{ steps.image-tag.outputs.sha_short }}"' values.yaml
+         
+    - name: Commit files
+      run: |
+        git config --local user.email "sania@wanclouds.net"
+        git config --local user.name "sania-123"
+        git commit -am "update image tag with latest commit id ${{ env.BRANCH_NAME }}_${{ steps.image-tag.outputs.sha_short }}"
+        git push origin ${{ env.BRANCH_NAME }}

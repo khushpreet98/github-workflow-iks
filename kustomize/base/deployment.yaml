@@ -1,0 +1,25 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app: hello-gitops
+  name: hello-gitops
+  namespace: gitops
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: hello-gitops
+  template:
+    metadata:
+      labels:
+        app: hello-gitops
+    spec:
+      containers:
+        - image: sania77/github-action:bd37171
+          name: hello-gitops
+          ports:
+            - name: http
+              containerPort: 8080
+      imagePullSecrets:
+        - name: registry-esys

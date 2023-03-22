@@ -1,0 +1,29 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: hello-gitops
+  namespace: gitops
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      name: hello-gitops
+  # strategy:
+  # type: RollingUpdate
+  # rollingUpdate:
+  #   maxUnavailable: 1
+  #   maxSurge: 1
+  template:
+    metadata:
+      labels:
+        name: hello-gitops
+    spec:
+      containers:
+      - name: hellogitops
+        image: {{ .Values.images.imagetag }}
+        imagePullPolicy: {{ .Values.images.pullPolicy }}
+        ports:
+          - name: http
+            containerPort: 8080
+      imagePullSecrets:
+        - name: registry-esys
