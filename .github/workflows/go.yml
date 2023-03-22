@@ -42,6 +42,15 @@ jobs:
       
     - name: push image
       run: docker push sania77/github-action:${{ env.BRANCH_NAME }}_${{ steps.image-tag.outputs.sha_short }}
+      
+    - name: Check out to repository vpc-microservice-deployment
+      uses: actions/checkout@v2
+      with:
+        repository: Wanclouds/vpc-microservice-deployment
+        token: ${{ secrets.token }}
+        ref: main
+
+
 
         
 #     - name: Build and push Docker image
