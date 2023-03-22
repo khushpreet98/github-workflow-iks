@@ -46,7 +46,7 @@ jobs:
     - name: Check out to repository vpc-microservice-deployment
       uses: actions/checkout@v2
       with:
-        repository: Wanclouds/vpc-microservice-deployment
+        repository: sania-123/github-workflow-iks
         token: ${{ secrets.token }}
         ref: main
 
