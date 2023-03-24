@@ -6,7 +6,7 @@
 
 images:
   pullPolicy: Always
-  imagetag: sania77/github-action:main_a2fb2ce
+  imagetag: sania77/github-action:main_440bcc0
 # serviceAccount:
 #   # Specifies whether a service account should be created
 #   create: true
